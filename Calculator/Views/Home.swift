@@ -107,7 +107,7 @@ struct Home: View {
             else if (currentOperator != nil && computeValue_2 == 0.0){
                 displayValue = 0.0
                 if (isDecimal == true && displayValue == floor(displayValue)){
-                    displayValue = Double("\(Int(button.buttonTitle)!)") ?? 0.0
+                    displayValue = Double("\(Int(displayValue)).\(Int(button.buttonTitle)!)") ?? 0.0
                 }
                 else if (isDecimal == true && displayValue != floor(displayValue)){
                     displayValue = Double("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0.0
@@ -131,8 +131,8 @@ struct Home: View {
             }
         case .operation:
             if let operationCalculatorButtons = button as? OperationCalculatorButtons {
-                
                 currentOperator = operationCalculatorButtons
+                isDecimal = false
                 }
         case .function:
             if let functionCalculatorButtons = button as? FunctionCalculatorButtons {
