@@ -8,18 +8,20 @@
 import SwiftUI
 struct Home: View {
     
-    @State var displayValue = "0"
-    @State var computeValue = 0.0
-    @State var currentOperator: Operation = .none
+    @State var displayValue = 0
+    @State var computeValue_1 = 0
+    @State var computeValue_2 = 0
+    @State var currentFunc: FunctionCalculatorButtons? = nil
+    @State var currentOperator: OperationCalculatorButtons? = nil
     @State var isDecimal = false
     
     //Buttons
-    let buttons: [[CalculatorButtons]] = [
-        [.clear, .negative, .percent, .divide],
-        [.seven, .eight, .nine, .multiply],
-        [.four, .five, .six, .subtract],
-        [.one, .two, .three, .add],
-        [.zero, .decimal, .equal]
+    let buttons: [[any CalculatorButtons]] = [
+        [FunctionCalculatorButtons.clear, FunctionCalculatorButtons.negative, FunctionCalculatorButtons.percent, OperationCalculatorButtons.divide],
+        [DigitsCalculatorButtons.seven, DigitsCalculatorButtons.eight, DigitsCalculatorButtons.nine, OperationCalculatorButtons.multiply],
+        [DigitsCalculatorButtons.four, DigitsCalculatorButtons.five, DigitsCalculatorButtons.six, OperationCalculatorButtons.subtract],
+        [DigitsCalculatorButtons.one, DigitsCalculatorButtons.two, DigitsCalculatorButtons.three, OperationCalculatorButtons.add],
+        [DigitsCalculatorButtons.zero, FunctionCalculatorButtons.decimal, FunctionCalculatorButtons.equal]
     ]
     
     var body: some View {
@@ -38,17 +40,17 @@ struct Home: View {
                 .padding()
                 
                 // MARK: Buttons
-                ForEach(buttons, id: \.self) { row in
+                ForEach(Array(buttons.enumerated()), id: \.offset) { (index, row) in
                     HStack(spacing:12){
-                        ForEach(row, id: \.self) { item in
+                        ForEach(Array(row.enumerated()), id: \.offset) { (index,item) in
                             Button {
-                                self.didTap(button: item)
+                                didTap(button: item)
                             } label: {
-                                Text(item.rawValue)
+                                Text(item.buttonTitle)
                                     .font(.system(size: 32))
-                                    .frame(width: self.buttonWidth(item: item), height: self.buttonHeight())
+                                    .frame(width: buttonWidth(item: item), height: buttonHeight())
                                     .background(item.buttonColor)
-                                    .clipShape(.rect(cornerRadius: self.buttonWidth(item: item) / 2))
+                                    .clipShape(.rect(cornerRadius: buttonWidth(item: item) / 2))
                                     .foregroundColor(.white)
                                     .fontWeight(.bold)
                             }
@@ -61,8 +63,8 @@ struct Home: View {
     }
     
     // Button Width
-    func buttonWidth(item:CalculatorButtons) -> CGFloat {
-        if item == .zero {
+    func buttonWidth(item:any CalculatorButtons) -> CGFloat {
+        if item.buttonTitle == "0" {
             return ((UIScreen.main.bounds.width - (4 * 12)) / 4) * 2
         }
         return (UIScreen.main.bounds.width - (5 * 12)) / 4
@@ -75,65 +77,61 @@ struct Home: View {
     
     //MARK: DidTap function
     func didTap(button:CalculatorButtons) {
-        switch button {
-        case .add, .subtract, .multiply, .divide, .equal:
-            if button == .add{
-                self.currentOperator = .add
-                self.computeValue = Double(self.displayValue) ?? 0.0
+        switch button.buttonType {
+        case .digit:
+            if displayValue == 0 {
+                displayValue = Int(button.buttonTitle)!
+                computeValue_1 = displayValue
             }
-            else if button == .subtract{
-                self.currentOperator = .subtract
-                self.computeValue = Double(self.displayValue) ?? 0.0
+            else if (currentOperator == nil){
+                displayValue = Int("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0
+                computeValue_1 = displayValue
             }
-            else if button == .multiply{
-                self.currentOperator = .multiply
-                self.computeValue = Double(self.displayValue) ?? 0.0
+            else if (currentOperator != nil && computeValue_2 == 0){
+                displayValue = Int(button.buttonTitle)!
+                computeValue_2 = displayValue
             }
-            else if button == .divide{
-                self.currentOperator = .divide
-                self.computeValue = Double(self.displayValue) ?? 0.0
+            else if (currentOperator != nil && computeValue_2 != 0){
+                displayValue = Int("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0
+                computeValue_2 = displayValue
             }
-            else if button == .equal{
-                let runningValue = self.computeValue
-                let currentValue = Double(self.displayValue) ?? 0.0
-                switch self.currentOperator {
-                case .add:
-                    self.displayValue = "\(runningValue + currentValue)"
-                case .subtract:
-                    self.displayValue = "\(runningValue - currentValue)"
-                case .multiply:
-                    self.displayValue = "\(runningValue * currentValue)"
-                case .divide:
-                    self.displayValue = "\(runningValue / currentValue)"
-                case .none:
+        case .operation:
+            if let operationCalculatorButtons = button as? OperationCalculatorButtons {
+                currentOperator = operationCalculatorButtons}
+        case .function:
+            if let functionCalculatorButtons = button as? FunctionCalculatorButtons {
+                switch functionCalculatorButtons {
+                case .equal:
+                    switch currentOperator! {
+                    case .add:
+                        displayValue = computeValue_1 + computeValue_2
+                    case .subtract:
+                        displayValue = computeValue_1 - computeValue_2
+                    case .multiply:
+                        displayValue = computeValue_1 * computeValue_2
+                    case .divide:
+                        displayValue = computeValue_1 / computeValue_2
+                    }
+                    computeValue_1 = displayValue
+                    computeValue_2 = 0
+                    currentOperator = nil
+                    currentFunc = nil
+                case .clear:
+                    displayValue = 0
+                    computeValue_1 = 0
+                    computeValue_2 = 0
+                    currentOperator = nil
+                    currentFunc = nil
+                    isDecimal = false
+                case .negative, .percent, .decimal:
                     break
                 }
             }
-            if button != .equal {
-                self.displayValue = "0"
-            }
-        case .clear:
-            self.displayValue = "0"
-        case .decimal:
-            if(self.isDecimal == false){
-                self.isDecimal = true
-                self.displayValue += "."
-            }
-            break
-        case .negative, .percent:
-            break
-        default:
-            let number = button.rawValue
-            if self.displayValue == "0"{
-                displayValue = number
-            }
-            else {
-                self.displayValue = "\(self.displayValue)\(number)"
-            }
+        }
+        
+        #Preview {
+            Home()
         }
     }
 }
 
-#Preview {
-    Home()
-}
