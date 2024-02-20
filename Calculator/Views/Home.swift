@@ -1,13 +1,6 @@
-//
-//  Home.swift
-//  Calculator
-//
-//  Created by dvp on 18/02/2024.
-//
-
 import SwiftUI
+
 struct Home: View {
-    
     @State var displayValue = 0.0
     @State var computeValue_1 = 0.0
     @State var computeValue_2 = 0.0
@@ -15,7 +8,7 @@ struct Home: View {
     @State var currentOperator: OperationCalculatorButtons? = nil
     @State var isDecimal = false
     
-    //Buttons
+    // MARK: Buttons
     let buttons: [[any CalculatorButtons]] = [
         [FunctionCalculatorButtons.clear, FunctionCalculatorButtons.negative, FunctionCalculatorButtons.percent, OperationCalculatorButtons.divide],
         [DigitsCalculatorButtons.seven, DigitsCalculatorButtons.eight, DigitsCalculatorButtons.nine, OperationCalculatorButtons.multiply],
@@ -36,7 +29,6 @@ struct Home: View {
                             .bold()
                             .font(.system(size: 100))
                             .foregroundColor(.white)
-                    
                 }
                 .padding()
                 
@@ -62,29 +54,38 @@ struct Home: View {
             }
         }
     }
-    
-    // Button Width
-    func buttonWidth(item:any CalculatorButtons) -> CGFloat {
-        if item.buttonTitle == "0" {
-            return ((UIScreen.main.bounds.width - (4 * 12)) / 4) * 2
+        
+        //  MARK: Button Width
+        func buttonWidth(item:any CalculatorButtons) -> CGFloat {
+            if item.buttonTitle == "0" {
+                return ((UIScreen.main.bounds.width - (4 * 12)) / 4) * 2
+            }
+            return (UIScreen.main.bounds.width - (5 * 12)) / 4
         }
-        return (UIScreen.main.bounds.width - (5 * 12)) / 4
-    }
-    
-    // Button Height
-    func buttonHeight() -> CGFloat {
-        return (UIScreen.main.bounds.width - (5 * 12)) / 4
-    }
-    
-    //MARK: DidTap function
-    func didTap(button:CalculatorButtons) {
-        switch button.buttonType {
-        case .digit:
+        
+        // MARK: Button Height
+        func buttonHeight() -> CGFloat {
+            return (UIScreen.main.bounds.width - (5 * 12)) / 4
+        }
+        
+        // MARK: didTap function
+        func didTap(button:CalculatorButtons) {
+            switch button.buttonType {
+            case .digit:
+                tappedDigit(button: button)
+            case .operation:
+                tappedOperation(button: button)
+            case .function:
+                tappedFunction(button: button)
+        }
+        
+        // MARK: tappedDigit function
+        func tappedDigit(button: CalculatorButtons) {
             if (currentOperator == nil && computeValue_1 == 0.0) {
-                if (isDecimal == true && displayValue == floor(displayValue)){
+                if (isDecimal && displayValue == floor(displayValue)){
                     displayValue = Double("\(Int(displayValue)).\(Int(button.buttonTitle)!)") ?? 0.0
                 }
-                else if (isDecimal == true && displayValue != floor(displayValue)){
+                else if (isDecimal && displayValue != floor(displayValue)){
                     displayValue = Double("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0.0
                 }
                 else {
@@ -93,10 +94,10 @@ struct Home: View {
                 computeValue_1 = displayValue
             }
             else if (currentOperator == nil && computeValue_1 != 0.0){
-                if (isDecimal == true && displayValue == floor(displayValue)){
+                if (isDecimal && displayValue == floor(displayValue)){
                     displayValue = Double("\(Int(displayValue)).\(Int(button.buttonTitle)!)") ?? 0.0
                 }
-                else if (isDecimal == true && displayValue != floor(displayValue)){
+                else if (isDecimal && displayValue != floor(displayValue)){
                     displayValue = Double("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0.0
                 }
                 else {
@@ -106,10 +107,10 @@ struct Home: View {
             }
             else if (currentOperator != nil && computeValue_2 == 0.0){
                 displayValue = 0.0
-                if (isDecimal == true && displayValue == floor(displayValue)){
+                if (isDecimal && displayValue == floor(displayValue)){
                     displayValue = Double("\(Int(displayValue)).\(Int(button.buttonTitle)!)") ?? 0.0
                 }
-                else if (isDecimal == true && displayValue != floor(displayValue)){
+                else if (isDecimal && displayValue != floor(displayValue)){
                     displayValue = Double("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0.0
                 }
                 else    {
@@ -118,10 +119,10 @@ struct Home: View {
                 computeValue_2 = displayValue
             }
             else if (currentOperator != nil && computeValue_2 != 0.0){
-                if (isDecimal == true && displayValue == floor(displayValue)){
+                if (isDecimal && displayValue == floor(displayValue)){
                     displayValue = Double("\(Int(displayValue)).\(Int(button.buttonTitle)!)") ?? 0.0
                 }
-                else if (isDecimal == true && displayValue != floor(displayValue)){
+                else if (isDecimal && displayValue != floor(displayValue)){
                     displayValue = Double("\(displayValue)\(Int(button.buttonTitle)!)") ?? 0.0
                 }
                 else {
@@ -129,16 +130,21 @@ struct Home: View {
                 }
                 computeValue_2 = displayValue
             }
-        case .operation:
-            if let operationCalculatorButtons = button as? OperationCalculatorButtons {
-                currentOperator = operationCalculatorButtons
-                isDecimal = false
+        }
+        
+        // MARK: tappedOperation function
+        func tappedOperation(button: CalculatorButtons) {
+                if let operationCalculatorButtons = button as? OperationCalculatorButtons {
+                    currentOperator = operationCalculatorButtons
+                    isDecimal = false
                 }
-        case .function:
+        }
+        
+        // MARK: tappedFunction function
+        func tappedFunction(button: CalculatorButtons) {
             if let functionCalculatorButtons = button as? FunctionCalculatorButtons {
                 switch functionCalculatorButtons {
                 case .equal:
-                    
                     switch currentOperator! {
                     case .add:
                         displayValue = computeValue_1 + computeValue_2
@@ -174,6 +180,6 @@ struct Home: View {
         #Preview {
             Home()
         }
+        
     }
 }
-

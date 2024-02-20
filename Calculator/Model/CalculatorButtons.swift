@@ -1,12 +1,4 @@
-//
-//  CalculatorButtons.swift
-//  Calculator
-//
-//  Created by dvp on 18/02/2024.
-//
-
 import SwiftUI
-
 
 enum CalculatorButtonType {
     case digit
