@@ -123,7 +123,11 @@ struct Home: View {
                     currentOperator = nil
                     currentFunc = nil
                     isDecimal = false
-                case .negative, .percent, .decimal:
+                case .negative:
+                    displayValue *= -1
+                case .percent:
+                    break
+                case .decimal:
                     break
                 }
             }
